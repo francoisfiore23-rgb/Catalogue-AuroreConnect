@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalogue d'Activités Filtrables</title>
+    <!-- Chargement de Tailwind CSS via CDN pour le style -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Configuration de la police Inter pour une meilleure lisibilité */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+        }
+        /* Style pour les cartes (cartes de shadow et transitions) */
+        .activity-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .activity-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-2xl">
+        <header class="mb-8">
+            <h1 class="text-4xl font-extrabold text-blue-800 mb-2">Catalogue d'Activités Aurore Connect</h1>
+            <p class="text-gray-600">Trouvez l'activité parfaite en utilisant les filtres ci-dessous.</p>
+        </header>
+
+        <!-- Zone de Filtres -->
+        <div class="flex flex-col md:flex-row gap-4 mb-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <!-- Filtre par Catégorie -->
+            <div class="flex-1">
+                <label for="category-filter" class="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                <select id="category-filter" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 shadow-sm">
+                    <option value="all">Toutes les Catégories</option>
+                    <option value="Sport">Sport</option>
+                    <option value="Culture">Culture</option>
+                    <option value="Bien-être">Bien-être</option>
+                    <option value="Technologie">Technologie</option>
+                </select>
+            </div>
+
+            <!-- Filtre par Niveau -->
+            <div class="flex-1">
+                <label for="level-filter" class="block text-sm font-medium text-gray-700 mb-1">Niveau</label>
+                <select id="level-filter" class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 shadow-sm">
+                    <option value="all">Tous les Niveaux</option>
+                    <option value="Débutant">Débutant</option>
+                    <option value="Intermédiaire">Intermédiaire</option>
+                    <option value="Avancé">Avancé</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Grille des Activités -->
+        <div id="activities-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Les cartes d'activités seront injectées ici par JavaScript -->
+        </div>
+
+        <!-- Message en cas de non-résultat -->
+        <p id="no-results-message" class="text-center text-xl text-gray-500 mt-10 hidden">
+            Aucune activité ne correspond à vos critères de recherche.
+        </p>
+
+    </div>
+
+    <script>
+        // Définition des données du catalogue
+        const activitiesData = [
+            { id: 1, name: "Yoga Matinal", category: "Bien-être", level: "Débutant", description: "Une séance douce pour commencer la journée en pleine conscience." },
+            { id: 2, name: "Atelier de Céramique", category: "Culture", level: "Intermédiaire", description: "Apprenez les bases du tournage et du modelage de l'argile." },
+            { id: 3, name: "Cours de Natation", category: "Sport", level: "Débutant", description: "Maîtrisez les quatre nages fondamentales." },
+            { id: 4, name: "Club de Lecture Science-Fiction", category: "Culture", level: "Avancé", description: "Discussion et analyse des classiques et nouveautés SF." },
+            { id: 5, name: "Introduction à Python", category: "Technologie", level: "Débutant", description: "Les bases de la programmation pour les débutants absolus." },
+            { id: 6, name: "Randonnée en Montagne", category: "Sport", level: "Avancé", description: "Exploration des sentiers difficiles avec un guide expérimenté." },
+            { id: 7, name: "Méditation Guidée", category: "Bien-être", level: "Intermédiaire", description: "Techniques de relaxation profonde et de gestion du stress." },
+            { id: 8, name: "Photographie Numérique", category: "Technologie", level: "Intermédiaire", description: "Comprendre son appareil et retoucher ses clichés." },
+        ];
+
+        const activitiesGrid = document.getElementById('activities-grid');
+        const categoryFilter = document.getElementById('category-filter');
+        const levelFilter = document.getElementById('level-filter');
+        const noResultsMessage = document.getElementById('no-results-message');
+
+        /**
+         * Crée et retourne l'élément DOM pour une carte d'activité.
+         * @param {object} activity - L'objet activité.
+         * @returns {HTMLElement} La carte d'activité.
+         */
+        function createActivityCard(activity) {
+            const card = document.createElement('div');
+            card.className = 'activity-card bg-white p-5 rounded-xl border border-gray-100 shadow-md flex flex-col justify-between';
+            card.innerHTML = `
+                <div>
+                    <span class="inline-block text-xs font-semibold px-3 py-1 rounded-full ${getCategoryStyle(activity.category)} mb-3">${activity.category}</span>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">${activity.name}</h3>
+                    <p class="text-sm text-gray-500 mb-4">${activity.description}</p>
+                </div>
+                <div class="flex justify-between items-center text-sm mt-3">
+                    <span class="text-blue-600 font-medium">Niveau: ${activity.level}</span>
+                    <button onclick="showDetails(${activity.id})" class="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg text-sm transition duration-150">Voir Détails</button>
+                </div>
+            `;
+            return card;
+        }
+
+        /**
+         * Retourne les classes Tailwind pour styliser la pastille de catégorie.
+         * @param {string} category - Le nom de la catégorie.
+         * @returns {string} Les classes CSS.
+         */
+        function getCategoryStyle(category) {
+            switch (category) {
+                case 'Sport': return 'bg-green-100 text-green-700';
+                case 'Culture': return 'bg-purple-100 text-purple-700';
+                case 'Bien-être': return 'bg-pink-100 text-pink-700';
+                case 'Technologie': return 'bg-yellow-100 text-yellow-700';
+                default: return 'bg-gray-100 text-gray-700';
+            }
+        }
+
+        /**
+         * Affiche un message simulé de détails.
+         * NOTE: Dans une application réelle, utiliser un modal ou une autre page.
+         * @param {number} id - L'ID de l'activité.
+         */
+        function showDetails(id) {
+            const activity = activitiesData.find(a => a.id === id);
+            if (activity) {
+                // Remplacement de l'alert() par un affichage plus convivial si possible, 
+                // mais pour le code HTML autonome, nous utilisons alert() ici
+                // pour la simplicité (sauf dans un environnement d'exécution Canvas).
+                alert(`Détails de l'activité: ${activity.name}\nCatégorie: ${activity.category}\nNiveau: ${activity.level}\nDescription: ${activity.description}`);
+            }
+        }
+        
+        /**
+         * Filtre et affiche les activités.
+         */
+        function filterActivities() {
+            const selectedCategory = categoryFilter.value;
+            const selectedLevel = levelFilter.value;
+
+            const filteredActivities = activitiesData.filter(activity => {
+                const categoryMatch = selectedCategory === 'all' || activity.category === selectedCategory;
+                const levelMatch = selectedLevel === 'all' || activity.level === selectedLevel;
+                return categoryMatch && levelMatch;
+            });
+
+            // Vider la grille
+            activitiesGrid.innerHTML = '';
+
+            if (filteredActivities.length === 0) {
+                noResultsMessage.classList.remove('hidden');
+            } else {
+                noResultsMessage.classList.add('hidden');
+                // Ajouter les cartes filtrées
+                filteredActivities.forEach(activity => {
+                    activitiesGrid.appendChild(createActivityCard(activity));
+                });
+            }
+        }
+
+        // Écouteurs d'événements pour les filtres
+        categoryFilter.addEventListener('change', filterActivities);
+        levelFilter.addEventListener('change', filterActivities);
+
+        // Afficher toutes les activités au chargement
+        filterActivities();
+    </script>
+</body>
+</html>
