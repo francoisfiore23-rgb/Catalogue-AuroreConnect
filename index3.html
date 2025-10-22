@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalogue d'Activités Adaptées (TSA)</title>
+    <!-- Chargement de Tailwind CSS via CDN pour le style -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Configuration de la police Inter pour une meilleure lisibilité */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+        }
+        /* Style pour les cartes (cartes de shadow et transitions) */
+        .activity-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .activity-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-2xl">
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-extrabold text-indigo-700 mb-2">Catalogue d'Activités Adaptées (TSA)</h1>
+            <p class="text-gray-600">Trouvez des activités structurées pour le développement des enfants autistes.</p>
+        </header>
+
+        <!-- Zone de Filtres -->
+        <div class="flex flex-col md:flex-row gap-4 mb-8 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+            <!-- Filtre par Catégorie Thématique -->
+            <div class="flex-1">
+                <label for="category-filter" class="block text-sm font-medium text-gray-700 mb-1">Thème d'Activité</label>
+                <select id="category-filter" class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
+                    <option value="all">Tous les Thèmes</option>
+                    <option value="Régulation">🧘 Régulation Sensorielle</option>
+                    <option value="Social">🤝 Compétences Sociales</option>
+                    <option value="Moteur">🖐️ Développement Moteur</option>
+                    <option value="Intérêt">🧠 Intérêts Spécifiques</option>
+                </select>
+            </div>
+
+            <!-- Filtre par Niveau d'Autonomie/Structure -->
+            <div class="flex-1">
+                <label for="level-filter" class="block text-sm font-medium text-gray-700 mb-1">Niveau de Structure</label>
+                <select id="level-filter" class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
+                    <option value="all">Tous les Niveaux</option>
+                    <option value="Faible">Faible (Exploration Libre)</option>
+                    <option value="Moyen">Moyen (Séquences Simples)</option>
+                    <option value="Élevé">Élevé (Routine Structurée)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Grille des Activités -->
+        <div id="activities-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Les cartes d'activités seront injectées ici par JavaScript -->
+        </div>
+
+        <!-- Message en cas de non-résultat -->
+        <p id="no-results-message" class="text-center text-xl text-gray-500 mt-10 hidden">
+            Aucune activité ne correspond à vos critères de recherche.
+        </p>
+
+    </div>
+
+    <script>
+        // =========================================================================
+        //  ZONE DE CONTENU : Activités adaptées pour enfants autistes (TSA)
+        // =========================================================================
+        const activitiesData = [
+            // RÉGULATION SENSORIELLE
+            { id: 1, name: "Le Coin Calme", category: "Régulation", level: "Faible", description: "Utilisation d'un sac de haricots et d'écouteurs pour l'isolation sonore. Focus sur l'autorégulation." },
+            { id: 2, name: "Bac Sensoriel Thématique", category: "Régulation", level: "Moyen", description: "Explorer des textures (riz, pâtes, eau) avec un thème précis (ex: 'ferme'). Nécessite supervision initiale." },
+            { id: 3, name: "Compression du Corps (Massage)", category: "Régulation", level: "Élevé", description: "Routine de pression profonde pour l'apport proprioceptif. Nécessite une séquence visuelle stricte." },
+            
+            // COMPÉTENCES SOCIALES ET ÉMOTIONNELLES
+            { id: 4, name: "Jeu de Cartes 'Émotions'", category: "Social", level: "Élevé", description: "Associer des visages à des étiquettes d'émotions. Routine d'apprentissage structurée." },
+            { id: 5, name: "L'Histoire Sociale du Matin", category: "Social", level: "Moyen", description: "Lecture d'une histoire courte décrivant une interaction sociale simple (ex: demander de l'aide)." },
+            { id: 6, name: "Jeu de Rôle Séquencé (Magasin)", category: "Social", level: "Élevé", description: "Suivre une série d'étapes visuelles pour simuler une transaction simple." },
+            
+            // DÉVELOPPEMENT MOTEUR (Fin et Global)
+            { id: 7, name: "Mosaïque de Perles à Enfiler", category: "Moteur", level: "Moyen", description: "Exercice de motricité fine pour améliorer la coordination œil-main. Résultat visuel immédiat." },
+            { id: 8, name: "Circuit d'Obstacles Simple", category: "Moteur", level: "Faible", description: "Marcher, sauter, ramper. Excellent pour l'énergie kinesthésique. Supervision minimale." },
+            
+            // INTÉRÊTS SPÉCIFIQUES
+            { id: 9, name: "Dictionnaire des Dinosaures", category: "Intérêt", level: "Moyen", description: "Organiser des fiches d'animaux (ou tout autre intérêt) par taille ou période. Activité de tri structurée." },
+            { id: 10, name: "Construction de Tours (Lego/Duplo)", category: "Intérêt", level: "Faible", description: "Construction répétitive sans but prédéfini. Focus sur la sensation tactile et la répétition." },
+            { id: 11, name: "Programmation Visuelle par Blocs", category: "Technologie", level: "Avancé", description: "Utiliser Scratch Junior ou équivalent pour créer une séquence logique simple." },
+            
+            // NOUVELLES AJOUTÉES
+            { id: 12, name: "Lavage des Objets", category: "Régulation", level: "Faible", description: "Jouer avec de l'eau savonneuse pour nettoyer des jouets. Effet calmant et auditif agréable." },
+            { id: 13, name: "Jeu de Pistes Visuelles", category: "Moteur", level: "Moyen", description: "Suivre une ligne de ruban adhésif au sol pour la conscience corporelle et la planification motrice." },
+            { id: 14, name: "Lecture Rythmée", category: "Culture", level: "Moyen", description: "Lire un poème court avec un métronome ou un rythme marqué. Aide à la prosodie et au langage." },
+        ];
+
+        const activitiesGrid = document.getElementById('activities-grid');
+        const categoryFilter = document.getElementById('category-filter');
+        const levelFilter = document.getElementById('level-filter');
+        const noResultsMessage = document.getElementById('no-results-message');
+
+        /**
+         * Crée et retourne l'élément DOM pour une carte d'activité.
+         * @param {object} activity - L'objet activité.
+         * @returns {HTMLElement} La carte d'activité.
+         */
+        function createActivityCard(activity) {
+            const card = document.createElement('div');
+            card.className = 'activity-card bg-white p-5 rounded-xl border border-gray-100 shadow-lg flex flex-col justify-between';
+            card.innerHTML = `
+                <div>
+                    <span class="inline-block text-xs font-semibold px-3 py-1 rounded-full ${getCategoryStyle(activity.category)} mb-3">${activity.category.split(' ')[0]}</span>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">${activity.name}</h3>
+                    <p class="text-sm text-gray-600 mb-4">${activity.description}</p>
+                </div>
+                <div class="flex justify-between items-center text-sm mt-3 pt-3 border-t border-gray-100">
+                    <span class="text-indigo-600 font-medium">Structure: ${activity.level}</span>
+                    <button onclick="showDetails(${activity.id})" class="text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-lg text-sm transition duration-150 shadow-md">Détails de la Routine</button>
+                </div>
+            `;
+            return card;
+        }
+
+        /**
+         * Retourne les classes Tailwind pour styliser la pastille de catégorie.
+         * @param {string} category - Le nom de la catégorie.
+         * @returns {string} Les classes CSS.
+         */
+        function getCategoryStyle(category) {
+            switch (category) {
+                case 'Régulation': return 'bg-sky-100 text-sky-700';
+                case 'Social': return 'bg-emerald-100 text-emerald-700';
+                case 'Moteur': return 'bg-orange-100 text-orange-700';
+                case 'Intérêt': return 'bg-fuchsia-100 text-fuchsia-700';
+                default: return 'bg-gray-100 text-gray-700';
+            }
+        }
+
+        /**
+         * Affiche un message simulant une routine détaillée pour l'activité.
+         * @param {number} id - L'ID de l'activité.
+         */
+        function showDetails(id) {
+            const activity = activitiesData.find(a => a.id === id);
+            if (activity) {
+                let routine = '';
+                switch (activity.name) {
+                    case "Le Coin Calme":
+                        routine = "Étape 1: Mettre les écouteurs. Étape 2: S'asseoir sur le sac. Étape 3: Utiliser le timer (10 min). Étape 4: Respirer 5 fois profondément.";
+                        break;
+                    case "Compression du Corps (Massage)":
+                        routine = "Étape 1: Placer le matelas. Étape 2: Presser les jambes 5 secondes. Étape 3: Presser les bras 5 secondes. Étape 4: Couverture lourde 2 minutes.";
+                        break;
+                    case "Jeu de Cartes 'Émotions'":
+                        routine = "Étape 1: Montrer une carte émotion (ex: Joie). Étape 2: Demander 'Comment il se sent ?'. Étape 3: Faire l'expression du visage. Étape 4: Ranger la carte.";
+                        break;
+                    default:
+                        routine = `Routine type : Début (préparation) → Milieu (exécution) → Fin (rangement). Adaptez la séquence visuelle.`;
+                }
+
+                alert(`ROUTINE DÉTAILLÉE pour : ${activity.name}\n\nType de Structure: ${activity.level}\n\nDescription: ${activity.description}\n\nSÉQUENCE (Exemple de support visuel) :\n${routine}`);
+            }
+        }
+        
+        /**
+         * Filtre et affiche les activités.
+         */
+        function filterActivities() {
+            const selectedCategory = categoryFilter.value.split(' ')[0]; // Prend seulement le nom de la catégorie
+            const selectedLevel = levelFilter.value.split(' ')[0]; // Prend seulement le niveau
+
+            const filteredActivities = activitiesData.filter(activity => {
+                const categoryMatch = selectedCategory === 'all' || activity.category === selectedCategory;
+                const levelMatch = selectedLevel === 'all' || activity.level === selectedLevel;
+                return categoryMatch && levelMatch;
+            });
+
+            // Vider la grille
+            activitiesGrid.innerHTML = '';
+
+            if (filteredActivities.length === 0) {
+                noResultsMessage.classList.remove('hidden');
+            } else {
+                noResultsMessage.classList.add('hidden');
+                // Ajouter les cartes filtrées
+                filteredActivities.forEach(activity => {
+                    activitiesGrid.appendChild(createActivityCard(activity));
+                });
+            }
+        }
+
+        // Écouteurs d'événements pour les filtres
+        categoryFilter.addEventListener('change', filterActivities);
+        levelFilter.addEventListener('change', filterActivities);
+
+        // Afficher toutes les activités au chargement
+        filterActivities();
+    </script>
+</body>
+</html>
